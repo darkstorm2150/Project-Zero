@@ -17,6 +17,7 @@ int main()
 	// The window to render to
 	SDL_Window* window = nullptr;
 
+
 	// The surface contained by the window
 	SDL_Surface* screenSurface = nullptr;
 
