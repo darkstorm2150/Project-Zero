@@ -33,6 +33,15 @@ int main()
 		return -1;
 	}
 
+	SDL_Surface* image = SDL_LoadBMP("zendaya.bmp");
+
+	if (!image)
+	{
+		std::cout << "Failed to load image\n";
+		std::cout << "SDL2 Error: " << SDL_GetError() << "\n";
+		return -1;
+	}
+
 	bool keep_window_open = true;
 	while (keep_window_open)
 	{
@@ -46,6 +55,7 @@ int main()
 					break;
 			}
 
+			SDL_BlitSurface(image, NULL, window_surface, NULL);
 			SDL_UpdateWindowSurface(window);
 		}
 	}
