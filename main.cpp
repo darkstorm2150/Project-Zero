@@ -12,14 +12,15 @@ int main()
 	}
 
 	SDL_Window* window = SDL_CreateWindow("SDL2 Window",
-		SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED,
-		680, 480,
-		0);
+										  SDL_WINDOWPOS_CENTERED,
+										  SDL_WINDOWPOS_CENTERED,
+										  680, 480,
+										  0);
 
 	if (!window)
 	{
 		std::cout << "Failed to create window\n";
+		std::cout << "SDL2 Error: " << SDL_GetError() << "\n";
 		return -1;
 	}
 
@@ -28,10 +29,24 @@ int main()
 	if (!window_surface)
 	{
 		std::cout << "Failed to get the surface from the window\n";
+		std::cout << "SDL2 Error: " << SDL_GetError() << "\n";
 		return -1;
 	}
 
-	SDL_UpdateWindowSurface(window);
+	bool keep_window_open = true;
+	while (keep_window_open)
+	{
+		SDL_Event e;
+		while (SDL_PollEvent(&e) > 0)
+		{
+			switch (e.type)
+			{
+				case SDL_QUIT:
+					keep_window_open = false;
+					break;
+			}
 
-	SDL_Delay(5000);
+			SDL_UpdateWindowSurface(window);
+		}
+	}
 }
