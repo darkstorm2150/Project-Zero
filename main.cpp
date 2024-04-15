@@ -17,7 +17,12 @@ int main(int argc, char* args[])
 	}
 	else
 	{
-		window = SDL_CreateWindow("SDL2 Initialized!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+		window = SDL_CreateWindow("SDL2 Initialized!", 
+								   SDL_WINDOWPOS_UNDEFINED, 
+								   SDL_WINDOWPOS_UNDEFINED, 
+								   SCREEN_WIDTH, 
+								   SCREEN_HEIGHT, 
+								   SDL_WINDOW_SHOWN);
 		if (window == NULL)
 		{
 			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -32,6 +37,8 @@ int main(int argc, char* args[])
 			}
 		}
 	}
+
+	printf("Quitting SDL2.\n");
 
 	SDL_DestroyWindow(window);
 	SDL_Quit();
