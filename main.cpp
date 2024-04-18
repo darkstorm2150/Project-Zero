@@ -1,9 +1,9 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
-bool init();
-void kill();
-bool load();
+bool initializeSDL();
+void shutdownSDL();
+bool loadImages();
 bool loop();
 
 SDL_Window* window = NULL;
@@ -16,16 +16,16 @@ const int SCREEN_HEIGHT = 720;
 
 int main(int argc, char* args[])
 {
-		if (!init()) return 1;
+		if (!initializeSDL()) return 1;
 
-		if (!load()) return 1;
+		if (!loadImages()) return 1;
 
 		while (loop())
 		{
 			SDL_Delay(10);
 		}
 
-		kill();
+		shutdownSDL();
 		return 0;
 }
 
@@ -73,16 +73,22 @@ bool loop()
 }
 
 
-bool load()
+bool loadImages()
 {
 	SDL_Surface* temp1, * temp2;
 
 	temp1 = SDL_LoadBMP("zendaya1.bmp");
+	if (!temp1)
+	{
+		std::cout << "Failed to load image 'zendaya1.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
+		return false;
+	}
+
 	temp2 = SDL_LoadBMP("zendaya2.bmp");
 
-	if (!temp1 || !temp2)
+	if (!temp2)
 	{
-		printf("Failed to load image! SDL_Error: %s\n", SDL_GetError());
+		std::cout << "Failed to load image 'zendaya2.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
 		return false;
 	}
 
@@ -92,19 +98,25 @@ bool load()
 	SDL_FreeSurface(temp1);
 	SDL_FreeSurface(temp2);
 
-	if (!image1 || !image2)
+	if (!image1)
 	{
-		printf("Failed converting surface! SDL_Error: %s\n", SDL_GetError());
+		std::cout << "failed to convert surface for image 1:" << SDL_GetError() << " (SDL error) " << std::endl;
+		return false;
+	}
+
+	if (!image2)
+	{
+		std::cout << "failed to convert surface for image 2:" << SDL_GetError() << " (SDL error) " << std::endl;
 		return false;
 	}
 	return true;
 }
 
-bool init()
+bool initializeSDL()
 {
 	if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) < 0)
 	{
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		std::cout << "Failed to initialize:" << SDL_GetError() << " (SDL error) " << std::endl;
 	}
 	
 		window = SDL_CreateWindow("SDL2 Initialized!",
@@ -115,20 +127,21 @@ bool init()
 			SDL_WINDOW_SHOWN);
 		if (window == NULL)
 		{
-			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+			std::cout << "Window could not be created:" << SDL_GetError() << " (SDL error) " << std::endl;
 		}
 
 		screenSurface = SDL_GetWindowSurface(window);
 		if (screenSurface == NULL)
 		{
-			printf("Surface could not be created! SDL_Error: %s\n", SDL_GetError());
+			std::cout << "Surface could not be created:" << SDL_GetError() << " (SDL error) " << std::endl;
 		}
 		return true;
 }
 
-void kill()
+void shutdownSDL()
 {
-	printf("Quitting SDL2.\n");
+	std::cout << "Shutting down SDL2" << std::endl;
+
 	SDL_FreeSurface(image1);
 	SDL_FreeSurface(image2);
 
