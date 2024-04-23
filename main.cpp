@@ -1,84 +1,76 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
-class Game
-{
-public:
-	Game();
-	~Game();
-	bool initializeSDL();
-	bool loadImages();
-	bool loop();
-	void shutdownSDL();
+bool init();
+void kill();
+bool load();
+bool loop();
 
-	const int SCREEN_WIDTH = 1280;
-	const int SCREEN_HEIGHT = 720;
+SDL_Window* window = NULL;
+SDL_Surface* screenSurface = NULL;
+SDL_Surface* image1 = NULL;
+SDL_Surface* image2 = NULL;
+SDL_Surface* image3 = NULL;
+SDL_Surface* image4 = NULL;
 
-private:
-	SDL_Window* window = NULL;
-	SDL_Surface* background = NULL;
-	SDL_Surface* message = NULL;
-	SDL_Surface* screen = NULL;
-	SDL_Surface* castle = NULL;
-	SDL_Surface* livingroom = NULL;
-	SDL_Surface* menu = NULL;
-	SDL_Surface* outdoors = NULL;
-};
-
-Game::Game() : 
-	window(NULL), 
-	background(NULL),
-	message(NULL), 
-	screen(NULL),
-	castle(NULL), 
-	livingroom(NULL),
-	menu(NULL), 
-	outdoors(NULL) {}
-
-Game::~Game()
-{
-	shutdownSDL();
-}
-
-
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
 
 int main(int argc, char* args[])
 {
-		Game game;
-		if (!game.initializeSDL()) return 1;
+	if (!init()) return 1;
 
-		if (!game.loadImages()) return 1;
+	if (!load()) return 1;
 
-		while (game.loop())
-		{
-			SDL_Delay(10);
-		}
+	while (loop())
+	{
+		SDL_Delay(10);
+	}
 
-		game.shutdownSDL();
-		return 0;
+	kill();
+	return 0;
 }
 
 
-bool Game::loop()
+bool loop()
 {
+	static bool renderImage1 = false;
 	static bool renderImage2 = false;
-	static bool imageSelection = 1;
+	static bool renderImage3 = false;
+	static bool renderImage4 = false;
+
+
 
 	SDL_Event e;
 
-	SDL_BlitSurface(message, NULL, background, NULL);
-	
+	// SDL_BlitSurface(image1, NULL, screenSurface, NULL);
+
 	SDL_Rect dest;
 	dest.x = 0;
 	dest.y = 0;
 	dest.w = SCREEN_WIDTH;
 	dest.h = SCREEN_HEIGHT;
-	SDL_BlitScaled(message, NULL, background, &dest);
+	SDL_BlitScaled(image1, NULL, screenSurface, &dest);
 
+
+	if (renderImage1)
+	{
+		SDL_BlitScaled(image1, NULL, screenSurface, &dest);
+	}
 
 	if (renderImage2)
 	{
-		SDL_BlitScaled(screen, NULL, background, &dest);
+		SDL_BlitScaled(image2, NULL, screenSurface, &dest);
+	}
+
+	if (renderImage3)
+	{
+		SDL_BlitScaled(image3, NULL, screenSurface, &dest);
+	}
+
+	if (renderImage4)
+	{
+		SDL_BlitScaled(image4, NULL, screenSurface, &dest);
 	}
 
 	while (SDL_PollEvent(&e) != 0)
@@ -88,10 +80,33 @@ bool Game::loop()
 		case SDL_QUIT:
 			return false;
 		case SDL_KEYDOWN:
-			renderImage2 = true;
-			break;
-		case SDL_KEYUP:
-			renderImage2 = false;
+			switch (e.key.keysym.sym)
+			{
+			case SDLK_q:
+				renderImage1 = true;
+				break;
+			case SDLK_a:
+				renderImage1 = false;
+				break;
+			case SDLK_w:
+				renderImage2 = true;
+				break;
+			case SDLK_s:
+				renderImage2 = false;
+				break;
+			case SDLK_e:
+				renderImage3 = true;
+				break;
+			case SDLK_d:
+				renderImage3 = false;
+				break;
+			case SDLK_r:
+				renderImage4 = true;
+				break;
+			case SDLK_f:
+				renderImage4 = false;
+				break;
+			}
 			break;
 		case SDL_MOUSEMOTION:
 			break;
@@ -104,141 +119,71 @@ bool Game::loop()
 }
 
 
-bool Game::loadImages()
+bool load()
 {
-	SDL_Surface* temp1, * temp2, * temp3, * temp4, * temp5, * temp6;
-
-	message = screen = castle = livingroom = menu = outdoors = NULL;
+	SDL_Surface* temp1, * temp2, * temp3, * temp4 = NULL;
 
 	temp1 = SDL_LoadBMP("zendaya1.bmp");
-	if (!temp1)
-	{
-		std::cout << "Failed to load image 'zendaya1.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
 	temp2 = SDL_LoadBMP("zendaya2.bmp");
-
-	if (!temp2)
-	{
-		std::cout << "Failed to load image 'zendaya2.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
 	temp3 = SDL_LoadBMP("castle.bmp");
-
-	if (!temp3)
-	{
-		std::cout << "Failed to load image 'castle.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
 	temp4 = SDL_LoadBMP("livingroom.bmp");
 
-	if (!temp4)
+	if (!temp1 || !temp2 || !temp3 || !temp4)
 	{
-		std::cout << "Failed to load image 'livingroom.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
+		printf("Failed to load image! SDL_Error: %s\n", SDL_GetError());
 		return false;
 	}
 
-	temp5 = SDL_LoadBMP("menu.bmp");
-
-	if (!temp5)
-	{
-		std::cout << "Failed to load image 'menu.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
-	temp6 = SDL_LoadBMP("outdoors.bmp");
-
-	if (!temp6)
-	{
-		std::cout << "Failed to load image 'outdoors.bmp':" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
-	message = SDL_ConvertSurface(temp1, background->format, 0);
-	screen = SDL_ConvertSurface(temp2, background->format, 0);
-	castle = SDL_ConvertSurface(temp3, background->format, 0);
-	livingroom = SDL_ConvertSurface(temp4, background->format, 0);
-	menu = SDL_ConvertSurface(temp5, background->format, 0);
-	outdoors = SDL_ConvertSurface(temp6, background->format, 0);
+	image1 = SDL_ConvertSurface(temp1, screenSurface->format, 0);
+	image2 = SDL_ConvertSurface(temp2, screenSurface->format, 0);
+	image3 = SDL_ConvertSurface(temp3, screenSurface->format, 0);
+	image4 = SDL_ConvertSurface(temp4, screenSurface->format, 0);
 
 	SDL_FreeSurface(temp1);
 	SDL_FreeSurface(temp2);
 	SDL_FreeSurface(temp3);
 	SDL_FreeSurface(temp4);
-	SDL_FreeSurface(temp5);
-	SDL_FreeSurface(temp6);
 
-	if (!message)
+	if (!image1 || !image2)
 	{
-		std::cout << "failed to convert surface for image 1:" << SDL_GetError() << " (SDL error) " << std::endl;
+		printf("Failed converting surface! SDL_Error: %s\n", SDL_GetError());
 		return false;
 	}
-
-	if (!screen)
-	{
-		std::cout << "failed to convert surface for image 2:" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
-	if (!castle)
-	{
-		std::cout << "failed to convert surface for image 3:" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
-	if (!livingroom)
-	{
-		std::cout << "failed to convert surface for image 4:" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
-	if (!menu)
-	{
-		std::cout << "failed to convert surface for image 5:" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
-	if (!outdoors)
-	{
-		std::cout << "failed to convert surface for image 6:" << SDL_GetError() << " (SDL error) " << std::endl;
-		return false;
-	}
-
 	return true;
 }
 
-bool Game::initializeSDL()
+bool init()
 {
 	if (SDL_InitSubSystem(SDL_INIT_EVERYTHING) < 0)
 	{
-		std::cout << "Failed to initialize:" << SDL_GetError() << " (SDL error) " << std::endl;
+		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 	}
-	
-	window = SDL_CreateWindow("SDL2 Initialized!",
-			SDL_WINDOWPOS_UNDEFINED,
-			SDL_WINDOWPOS_UNDEFINED,
-			SCREEN_WIDTH,
-			SCREEN_HEIGHT,
-			SDL_WINDOW_SHOWN);
-	if (window == NULL)
-			{
-			std::cout << "Window could not be created:" << SDL_GetError() << " (SDL error) " << std::endl;
-			}
 
-		background = SDL_GetWindowSurface(window);
-		if (background == NULL)
-		{
-			std::cout << "Surface could not be created:" << SDL_GetError() << " (SDL error) " << std::endl;
-		}
-		return true;
+	window = SDL_CreateWindow("SDL2 Initialized!",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		SCREEN_WIDTH,
+		SCREEN_HEIGHT,
+		SDL_WINDOW_SHOWN);
+	if (window == NULL)
+	{
+		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+	}
+
+	screenSurface = SDL_GetWindowSurface(window);
+	if (screenSurface == NULL)
+	{
+		printf("Surface could not be created! SDL_Error: %s\n", SDL_GetError());
+	}
+	return true;
 }
 
-void Game::shutdownSDL()
+void kill()
 {
-	std::cout << "Shutting down SDL2" << std::endl;
+	printf("Quitting SDL2.\n");
+	SDL_FreeSurface(image1);
+	SDL_FreeSurface(image2);
+	SDL_FreeSurface(image3);
 
 	SDL_DestroyWindow(window);
 	SDL_Quit();
