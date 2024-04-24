@@ -46,99 +46,116 @@ bool loop()
 	SDL_Event e;
 
 	// SDL_BlitSurface(image1, NULL, screenSurface, NULL);
+	SDL_Rect src;
+	src.x = 0;
+	src.y = 0;
+	src.w = SCREEN_WIDTH;
+	src.h = SCREEN_HEIGHT;
+
 
 	SDL_Rect dest;
 	dest.x = 0;
 	dest.y = 0;
 	dest.w = SCREEN_WIDTH;
 	dest.h = SCREEN_HEIGHT;
-	SDL_BlitScaled(image5, NULL, screenSurface, &dest);
+	// SDL_BlitScaled(image5, &src, screenSurface, &dest);
 
 
-	if (renderImage1 && image1 && screenSurface)
+	
+
+	while (true)
 	{
-		SDL_BlitScaled(image1, NULL, screenSurface, &dest);
-	}
-
-	if (renderImage2 && image2 && screenSurface)
-	{
-		SDL_BlitScaled(image2, NULL, screenSurface, &dest);
-	}
-
-	if (renderImage3 && image3 && screenSurface)
-	{
-		SDL_BlitScaled(image3, NULL, screenSurface, &dest);
-	}
-
-	if (renderImage4 && image4 && screenSurface)
-	{
-		SDL_BlitScaled(image4, NULL, screenSurface, &dest);
-	}
-
-	if (renderImage5 && image5 && screenSurface)
-	{
-		SDL_BlitScaled(image5, NULL, screenSurface, &dest);
-	}
-
-	if (renderImage6 && image6 && screenSurface)
-	{
-		SDL_BlitScaled(image6, NULL, screenSurface, &dest);
-	}
-
-	while (SDL_PollEvent(&e) != 0)
-	{
-		switch (e.type)
+		while (SDL_PollEvent(&e) != 0)
 		{
-		case SDL_QUIT:
-			return false;
-		case SDL_KEYDOWN:
-			switch (e.key.keysym.sym)
+			switch (e.type)
 			{
-			case SDLK_ESCAPE:
+			case SDL_QUIT:
 				return false;
+			case SDL_KEYDOWN:
+				switch (e.key.keysym.sym)
+				{
+				case SDLK_ESCAPE:
+					return false;
+					break;
+				case SDLK_q:
+					renderImage1 = true;
+					break;
+				case SDLK_w:
+					renderImage2 = true;
+					break;
+				case SDLK_e:
+					renderImage3 = true;
+					break;
+				case SDLK_r:
+					renderImage4 = true;
+					break;
+				case SDLK_t:
+					renderImage5 = true;
+					break;
+				case SDLK_y:
+					renderImage6 = true;
+					break;
+				}
 				break;
-			case SDLK_q:
-				renderImage1 = true;
-				break;
-			case SDLK_a:
-				renderImage1 = false;
-				break;
-			case SDLK_w:
-				renderImage2 = true;
-				break;
-			case SDLK_s:
-				renderImage2 = false;
-				break;
-			case SDLK_e:
-				renderImage3 = true;
-				break;
-			case SDLK_d:
-				renderImage3 = false;
-				break;
-			case SDLK_r:
-				renderImage4 = true;
-				break;
-			case SDLK_f:
-				renderImage4 = false;
-				break;
-			case SDLK_t:
-				renderImage5 = true;
-				break;
-			case SDLK_g:
-				renderImage5 = false;
-				break;
-			case SDLK_y:
-				renderImage6 = true;
-				break;
-			case SDLK_h:
-				renderImage6 = false;
+			case SDL_KEYUP:
+				switch (e.key.keysym.sym) {
+				case SDLK_q:
+					renderImage1 = false;
+					break;
+				case SDLK_w:
+					renderImage2 = false;
+					break;
+				case SDLK_e:
+					renderImage3 = false;
+					break;
+				case SDLK_r:
+					renderImage4 = false;
+					break;
+				case SDLK_t:
+					renderImage5 = false;
+					break;
+				case SDLK_y:
+					renderImage6 = false;
+					break;
+				}
 				break;
 			}
-			break;
 		}
-	}
 
-	SDL_UpdateWindowSurface(window);
+		SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
+
+		if (renderImage1 && image1 && screenSurface)
+		{
+			SDL_BlitScaled(image1, &src, screenSurface, &dest);
+		}
+
+		if (renderImage2 && image2 && screenSurface)
+		{
+			SDL_BlitScaled(image2, &src, screenSurface, &dest);
+		}
+
+		if (renderImage3 && image3 && screenSurface)
+		{
+			SDL_BlitScaled(image3, &src, screenSurface, &dest);
+		}
+
+		if (renderImage4 && image4 && screenSurface)
+		{
+			SDL_BlitScaled(image4, &src, screenSurface, &dest);
+		}
+
+		if (renderImage5 && image5 && screenSurface)
+		{
+			SDL_BlitScaled(image5, &src, screenSurface, &dest);
+		}
+
+		if (renderImage6 && image6 && screenSurface)
+		{
+			SDL_BlitScaled(image6, &src, screenSurface, &dest);
+		}
+
+		SDL_UpdateWindowSurface(window);
+	}
 
 	return true;
 }
