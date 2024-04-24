@@ -12,6 +12,8 @@ SDL_Surface* image1 = NULL;
 SDL_Surface* image2 = NULL;
 SDL_Surface* image3 = NULL;
 SDL_Surface* image4 = NULL;
+SDL_Surface* image5 = NULL;
+SDL_Surface* image6 = NULL;
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
@@ -38,8 +40,8 @@ bool loop()
 	static bool renderImage2 = false;
 	static bool renderImage3 = false;
 	static bool renderImage4 = false;
-
-
+	static bool renderImage5 = false;
+	static bool renderImage6 = false;
 
 	SDL_Event e;
 
@@ -50,27 +52,37 @@ bool loop()
 	dest.y = 0;
 	dest.w = SCREEN_WIDTH;
 	dest.h = SCREEN_HEIGHT;
-	SDL_BlitScaled(image1, NULL, screenSurface, &dest);
+	SDL_BlitScaled(image5, NULL, screenSurface, &dest);
 
 
-	if (renderImage1)
+	if (renderImage1 && image1 && screenSurface)
 	{
 		SDL_BlitScaled(image1, NULL, screenSurface, &dest);
 	}
 
-	if (renderImage2)
+	if (renderImage2 && image2 && screenSurface)
 	{
 		SDL_BlitScaled(image2, NULL, screenSurface, &dest);
 	}
 
-	if (renderImage3)
+	if (renderImage3 && image3 && screenSurface)
 	{
 		SDL_BlitScaled(image3, NULL, screenSurface, &dest);
 	}
 
-	if (renderImage4)
+	if (renderImage4 && image4 && screenSurface)
 	{
 		SDL_BlitScaled(image4, NULL, screenSurface, &dest);
+	}
+
+	if (renderImage5 && image5 && screenSurface)
+	{
+		SDL_BlitScaled(image5, NULL, screenSurface, &dest);
+	}
+
+	if (renderImage6 && image6 && screenSurface)
+	{
+		SDL_BlitScaled(image6, NULL, screenSurface, &dest);
 	}
 
 	while (SDL_PollEvent(&e) != 0)
@@ -82,6 +94,9 @@ bool loop()
 		case SDL_KEYDOWN:
 			switch (e.key.keysym.sym)
 			{
+			case SDLK_ESCAPE:
+				return false;
+				break;
 			case SDLK_q:
 				renderImage1 = true;
 				break;
@@ -106,9 +121,19 @@ bool loop()
 			case SDLK_f:
 				renderImage4 = false;
 				break;
+			case SDLK_t:
+				renderImage5 = true;
+				break;
+			case SDLK_g:
+				renderImage5 = false;
+				break;
+			case SDLK_y:
+				renderImage6 = true;
+				break;
+			case SDLK_h:
+				renderImage6 = false;
+				break;
 			}
-			break;
-		case SDL_MOUSEMOTION:
 			break;
 		}
 	}
@@ -121,30 +146,74 @@ bool loop()
 
 bool load()
 {
-	SDL_Surface* temp1, * temp2, * temp3, * temp4 = NULL;
+	SDL_Surface* temp1, * temp2, * temp3, * temp4 , * temp5, * temp6= NULL;
 
 	temp1 = SDL_LoadBMP("zendaya1.bmp");
 	temp2 = SDL_LoadBMP("zendaya2.bmp");
 	temp3 = SDL_LoadBMP("castle.bmp");
 	temp4 = SDL_LoadBMP("livingroom.bmp");
+	temp5 = SDL_LoadBMP("menu.bmp");
+	temp6 = SDL_LoadBMP("outdoors.bmp");
 
-	if (!temp1 || !temp2 || !temp3 || !temp4)
+
+	if (!temp1 || !temp2 || !temp3 || !temp4 || !temp5 || !temp6)
 	{
 		printf("Failed to load image! SDL_Error: %s\n", SDL_GetError());
 		return false;
 	}
 
+	// add error handling for convertsurface's
+
 	image1 = SDL_ConvertSurface(temp1, screenSurface->format, 0);
+	if (!image1)
+	{
+		std::cout << "Failed to load image1:" << SDL_GetError() << "(SDL ERROR)" << std::endl;
+			return false;
+	}
+
 	image2 = SDL_ConvertSurface(temp2, screenSurface->format, 0);
+	if (!image2)
+	{
+		std::cout << "Failed to load image2:" << SDL_GetError() << "(SDL ERROR)" << std::endl;
+		return false;
+	}
+
 	image3 = SDL_ConvertSurface(temp3, screenSurface->format, 0);
+	if (!image3)
+	{
+		std::cout << "Failed to load image3:" << SDL_GetError() << "(SDL ERROR)" << std::endl;
+		return false;
+	}
+
 	image4 = SDL_ConvertSurface(temp4, screenSurface->format, 0);
+	if (!image4)
+	{
+		std::cout << "Failed to load image4:" << SDL_GetError() << "(SDL ERROR)" << std::endl;
+		return false;
+	}
+
+	image5 = SDL_ConvertSurface(temp5, screenSurface->format, 0);
+	if (!image5)
+	{
+		std::cout << "Failed to load image5:" << SDL_GetError() << "(SDL ERROR)" << std::endl;
+		return false;
+	}
+
+	image6 = SDL_ConvertSurface(temp6, screenSurface->format, 0);
+	if (!image6)
+	{
+		std::cout << "Failed to load image6:" << SDL_GetError() << "(SDL ERROR)" << std::endl;
+		return false;
+	}
 
 	SDL_FreeSurface(temp1);
 	SDL_FreeSurface(temp2);
 	SDL_FreeSurface(temp3);
 	SDL_FreeSurface(temp4);
+	SDL_FreeSurface(temp5);
+	SDL_FreeSurface(temp6);
 
-	if (!image1 || !image2)
+	if (!image1 || !image2 || !image3 || !image4 || !image5 || !image6)
 	{
 		printf("Failed converting surface! SDL_Error: %s\n", SDL_GetError());
 		return false;
@@ -184,6 +253,9 @@ void kill()
 	SDL_FreeSurface(image1);
 	SDL_FreeSurface(image2);
 	SDL_FreeSurface(image3);
+	SDL_FreeSurface(image4);
+	SDL_FreeSurface(image5);
+	SDL_FreeSurface(image6);
 
 	SDL_DestroyWindow(window);
 	SDL_Quit();
