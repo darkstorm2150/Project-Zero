@@ -58,10 +58,7 @@ bool loop()
 	dest.y = 0;
 	dest.w = SCREEN_WIDTH;
 	dest.h = SCREEN_HEIGHT;
-	// SDL_BlitScaled(image5, &src, screenSurface, &dest);
-
-
-	
+    // SDL_BlitScaled(image5, &src, screenSurface, &dest);	
 
 	while (true)
 	{
@@ -119,7 +116,24 @@ bool loop()
 					break;
 				}
 				break;
+
+			case SDL_MOUSEBUTTONDOWN:
+				switch (e.button.button) {
+				case SDL_BUTTON_LEFT:
+					renderImage1 = true;
+					break;
+				}
+				break;
+			case SDL_MOUSEBUTTONUP:
+				switch (e.button.button) {
+				case SDL_BUTTON_LEFT:
+					renderImage3 = true;
+					break;
+				}
+				break;
 			}
+
+		break;
 		}
 
 		SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
