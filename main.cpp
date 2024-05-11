@@ -1,6 +1,10 @@
 #include <iostream>
 #include <SDL.h>
+#include <SDL2\SDL_image.h>
 #include <cmath>
+#include <sstream>
+
+const std::string ProjectZeroVersion = "0.01";
 
 bool initRenderer();
 bool loop();
@@ -26,17 +30,16 @@ bool initRenderer() {
 		throw std::runtime_error("initRenderer(): Unable to create renderer: " + std::string(SDL_GetError()));
 	}
 
-	// Load bitmap into surface
 	SDL_Surface* buffer = SDL_LoadBMP("menu.bmp");
 	if (!buffer) {
-		throw std::runtime_error("initRenderer(): Unable to load 'test.bmp': " + std::string(SDL_GetError()));
+		throw std::runtime_error(std::string("initRenderer(): Unable to load 'menu.bmp': ") + SDL_GetError());
 	}
 
 	texture = SDL_CreateTextureFromSurface(renderer, buffer);
 	SDL_FreeSurface(buffer);
 	buffer = NULL;
 	if (!texture) {
-		throw std::runtime_error("initRenderer(); Unable to create texture: " + std::string(SDL_GetError()));
+		throw std::runtime_error(std::string("initRenderer(); Unable to create texture: ") + std::string(SDL_GetError()));
 	}
 
 	return true;
@@ -111,7 +114,9 @@ void kill() {
 	SDL_Quit();
 }
 
-int main(int argc, char** args) {
+int main(int argc, char* args[]) {
+
+	std::cout << "Starting Project Zero-SDL2 version " << ProjectZeroVersion << " by Victor Espinoza." << std::endl;
 
 	if (!initRenderer()) return 1;
 
