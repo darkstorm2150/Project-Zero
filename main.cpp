@@ -14,6 +14,17 @@
 
 const std::string ProjectZeroVersion = "0.01";
 
+//Key press surfaces constants
+enum KeyPressSurfaces
+{
+	KEY_PRESS_SURFACE_DEFAULT,
+	KEY_PRESS_SURFACE_UP,
+	KEY_PRESS_SURFACE_DOWN,
+	KEY_PRESS_SURFACE_LEFT,
+	KEY_PRESS_SURFACE_RIGHT,
+	KEY_PRESS_SURFACE_TOTAL
+};
+
 // Function to create a button
 SDL_Surface* create_button(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect)
 {
@@ -95,7 +106,7 @@ int main(int argc, char** args)
 	// Create button surfaces and rects
 	SDL_Surface* button_surfaces[4];
 	SDL_Rect button_rects[4];
-	const char* button_labels[] = { "Login", "Register", "Exist", "Help" };
+	const char* button_labels[] = { "Login", "Register", "Exit", "Help" };
 
 	if (!init_sdl(&window, &surface))
 	{
@@ -109,30 +120,79 @@ int main(int argc, char** args)
 
 	static const unsigned char* keys = SDL_GetKeyboardState(NULL);
 
-	SDL_Event e;
-	SDL_Rect dest;
+	int currentSelection = 0;
 
 	// Event loop
 	bool quit = false;
-	while (!quit) {
-		while (SDL_PollEvent(&e) != 0) {
-			switch (e.type) {
-			case SDL_QUIT:
-				quit = true;
-				return false;
-			case SDL_KEYDOWN:
-				break;
-			}
-		}
+	
+	//Event handler
+	SDL_Event e;
 
+	// While application is running
+	while ( !quit )
+	{
 		// Render everything
 		SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
 		for (int i = 0; i < 4; i++)
 		{
-			render_button(surface, button_surfaces[i], &button_rects[i]);
+			if (i == currentSelection)
+			{
+				// Highlight the currently selected button
+				SDL_Color highlightColor = { 255, 255, 0 };
+				SDL_Surface* highlightedButton = create_button(font, highlightColor, button_labels[i], &button_rects[i]);
+				render_button(surface, highlightedButton, &button_rects[i]);
+				SDL_FreeSurface(highlightedButton);
+			}
+			else
+			{
+				render_button(surface, button_surfaces[i], &button_rects[i]);
+			}
 		}
 
 		SDL_UpdateWindowSurface(window);
+
+		// Handle events on queue
+		while ( SDL_PollEvent( &e ) != 0 )
+		{
+			//User request quit
+			if ( e.type == SDL_QUIT )
+			{
+				quit = true;
+			}
+			// User presses a key
+			else if ( e.type == SDL_KEYDOWN )
+			{
+				//Select surface based on key press
+				switch (e.key.keysym.sym)
+				{
+				case SDLK_UP:
+					currentSelection = (currentSelection - 1 + 4) % 4;
+					break;
+				case SDLK_DOWN:
+					currentSelection = (currentSelection + 1) % 4;
+					break;
+				case SDLK_RETURN:
+					// Perform the action associate with the currently selected button
+					switch (currentSelection)
+					{
+					case 0:
+						std::cout << "Login button selected" << std::endl;
+						break;
+					case 1:
+						std::cout << "Register button selected" << std::endl;
+						break;
+					case 2:
+						std::cout << "Exit button selected" << std::endl;
+						quit = true;
+						break;
+					case 3:
+						std::cout << "Help button selected" << std::endl;
+						break;
+					}
+					break;
+				}
+			}
+		}
 	}
 
 	// Clean up
