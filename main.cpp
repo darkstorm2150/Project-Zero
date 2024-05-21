@@ -1,130 +1,152 @@
 #include <iostream>
 #include <SDL.h>
-#include <SDL2\SDL_image.h>
+#include <SDL_ttf.h>
 #include <cmath>
 #include <sstream>
 
+// Font 8_bit_1_6 by Zaydek MG
+
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+#define BUTTON_WIDTH 200
+#define BUTTON_HEIGHT 50
+#define BUTTON_SPACING 20
+
 const std::string ProjectZeroVersion = "0.01";
 
-bool initRenderer();
-bool loop();
-void kill();
+// Function to create a button
+SDL_Surface* create_button(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect)
+{
+	SDL_Surface* button_surface = TTF_RenderText_Solid(font, text, color);
+	rect->w = button_surface->w;
+	rect->h = button_surface->h;
+	return button_surface;
+}
 
-// Pointers to our window, renderer, and texture
-SDL_Window* window;
-SDL_Renderer* renderer;
-SDL_Texture* texture;
+// Function to render a button
+void renderButton(SDL_Surface* surface, SDL_Surface* buttonSurface, SDL_Rect* rect)
+{
+	SDL_BlitSurface(buttonSurface, NULL, surface, rect);
+}
 
-bool initRenderer() {
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		throw std::runtime_error("initRenderer(): Unable to initialize SDL2: " + std::string(SDL_GetError()));
+// Function to render a button
+void render_button(SDL_Surface* surface, SDL_Surface* button_surface, SDL_Rect* rect)
+{
+	SDL_BlitSurface(button_surface, NULL, surface, rect);
+}
+
+// Function to initialize SDL
+bool init_sdl(SDL_Window** window, SDL_Surface** surface)
+{
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	{
+		printf("SDL Initialize failed: %s\n", SDL_GetError());
+		return 1;
 	}
 
-	window = SDL_CreateWindow("Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
-	if (!window) {
-		throw std::runtime_error("initRenderer(): Unable to create primary window: " + std::string(SDL_GetError()));
+	*window = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_SHOWN);
+
+	if (!*window)
+	{
+		printf("Window creation failed: %s\n", SDL_GetError());
+		return 1;
 	}
 
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	if (!renderer) {
-		throw std::runtime_error("initRenderer(): Unable to create renderer: " + std::string(SDL_GetError()));
+	*surface = SDL_GetWindowSurface(*window);
+	return true;
+}
+
+// Function to load font and create buttons
+bool load_font_and_create_buttons(TTF_Font** font, SDL_Surface** button_surfaces, SDL_Rect* button_rects, const char** button_labels)
+{
+	if (TTF_Init() < 0)
+	{
+		printf("TTF Initialization failed: %s\n", TTF_GetError());
+		return 1;
 	}
 
-	SDL_Surface* buffer = SDL_LoadBMP("menu.bmp");
-	if (!buffer) {
-		throw std::runtime_error(std::string("initRenderer(): Unable to load 'menu.bmp': ") + SDL_GetError());
+	*font = TTF_OpenFont("8bit16.ttf", 48);
+	if (!*font)
+	{
+		printf("TTF Initialization failed: %s\n", TTF_GetError());
+		return 1;
 	}
 
-	texture = SDL_CreateTextureFromSurface(renderer, buffer);
-	SDL_FreeSurface(buffer);
-	buffer = NULL;
-	if (!texture) {
-		throw std::runtime_error(std::string("initRenderer(); Unable to create texture: ") + std::string(SDL_GetError()));
+	SDL_Color button_color = { 255, 255 , 255 };
+
+	for (int i = 0; i < 4; i++)
+	{
+		button_rects[i].x = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
+		button_rects[i].y = 200 + i * (BUTTON_HEIGHT + BUTTON_SPACING);
+		button_surfaces[i] = create_button(*font, button_color, button_labels[i], &button_rects[i]);
 	}
 
 	return true;
 }
 
-bool loop() {
+int main(int argc, char** args)
+{
+	std::cout << "Starting Project Zero-SDL2 version " << ProjectZeroVersion << " by Victor Espinoza." << std::endl;
+
+	SDL_Window* window = NULL;
+	SDL_Surface* surface = NULL;
+	TTF_Font* font = NULL;
+
+	// Create button surfaces and rects
+	SDL_Surface* button_surfaces[4];
+	SDL_Rect button_rects[4];
+	const char* button_labels[] = { "Login", "Register", "Exist", "Help" };
+
+	if (!init_sdl(&window, &surface))
+	{
+		return 1;
+	}
+
+	if (!load_font_and_create_buttons(&font, button_surfaces, button_rects, button_labels))
+	{
+		return 1;
+	}
 
 	static const unsigned char* keys = SDL_GetKeyboardState(NULL);
 
 	SDL_Event e;
 	SDL_Rect dest;
 
-	static int mx = -1, my = -1;
-	static double rot = 0;
-
-	// Clear the window to white
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_RenderClear(renderer);
-
 	// Event loop
-	while (SDL_PollEvent(&e) != 0) {
-		switch (e.type) {
-		case SDL_QUIT:
-			return false;
-		case SDL_MOUSEMOTION:
-			mx = e.motion.x;
-			my = e.motion.y;
-			break;
+	bool quit = false;
+	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			switch (e.type) {
+			case SDL_QUIT:
+				quit = true;
+				return false;
+			case SDL_KEYDOWN:
+				break;
+			}
 		}
+
+		// Render everything
+		SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
+		for (int i = 0; i < 4; i++)
+		{
+			render_button(surface, button_surfaces[i], &button_rects[i]);
+		}
+
+		SDL_UpdateWindowSurface(window);
+	}
+	
+	// Clean up
+	for (int i = 0; i < 4; i++)
+	{
+		SDL_FreeSurface(button_surfaces[i]);
 	}
 
-	if (mx != -1) {
-		// Distance across window
-		float wpercent = mx / 640.0f;
-		float hpercent = my / 480.0f;
+	TTF_CloseFont(font);
+	font = NULL;
 
-		// Color
-		unsigned char r = round(wpercent * 255);
-		unsigned char g = round(hpercent * 255);
-
-		// Color mod (b will always be zero)
-		SDL_SetTextureColorMod(texture, r, g, 0);
-
-		mx -= 320;
-		my -= 240;
-		rot = atan((float)my / (float)mx) * (180.0f / 3.14f);
-		if (mx < 0)
-			rot -= 180;
-	}
-	mx = my = -1;
-
-	// Render texture
-	dest.x = 240;
-	dest.y = 180;
-	dest.w = 160;
-	dest.h = 120;
-	SDL_RenderCopyEx(renderer, texture, NULL, &dest, rot, NULL, keys[SDL_SCANCODE_F] ? SDL_FLIP_VERTICAL : SDL_FLIP_NONE);
-
-	// Update window
-	SDL_RenderPresent(renderer);
-
-	return true;
-}
-
-void kill() {
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-	texture = NULL;
-	window = NULL;
-	renderer = NULL;
+	TTF_Quit();
 	SDL_Quit();
-}
 
-int main(int argc, char* args[]) {
-
-	std::cout << "Starting Project Zero-SDL2 version " << ProjectZeroVersion << " by Victor Espinoza." << std::endl;
-
-	if (!initRenderer()) return 1;
-
-	while (loop()) {
-		// wait before processing the next frame
-		SDL_Delay(10);
-	}
-
-	kill();
 	return 0;
 }
