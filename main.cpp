@@ -132,13 +132,18 @@ int main(int argc, char** args)
 			render_button(surface, button_surfaces[i], &button_rects[i]);
 		}
 
-		SDL_UpdateWindowSurface(window);
-	}
+		// Color
+		unsigned char r = round(wpercent * 255);
+		unsigned char g = round(hpercent * 255);
 
-	// Clean up
-	for (int i = 0; i < 4; i++)
-	{
-		SDL_FreeSurface(button_surfaces[i]);
+		// Color mod (b will always be zero)
+		SDL_SetTextureColorMod(texture, r, g, 0);
+
+		mx -= 320;
+		my -= 240;
+		rot = atan((float)my / (float)mx) * (180.0f / 3.14f);
+		if (mx < 0)
+			rot -= 180;
 	}
 
 	TTF_CloseFont(font);
