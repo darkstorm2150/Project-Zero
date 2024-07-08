@@ -1,18 +1,23 @@
 #include <iostream>
 #include <SDL.h>
 #include <SDL_ttf.h>
-#include <cmath>
-#include <sstream>
 
 // Font 8_bit_1_6 by Zaydek MG
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
-#define BUTTON_WIDTH 200
-#define BUTTON_HEIGHT 50
-#define BUTTON_SPACING 20
+class UIConfig
+{
+public:
+	static const int WINDOW_WIDTH = 1280;
+	static const int WINDOW_HEIGHT = 720;
+	static const int BUTTON_WIDTH = 200;
+	static const int BUTTON_HEIGHT = 50;
+	static const int BUTTON_SPACING = 20;
 
-const std::string ProjectZeroVersion = "0.01";
+private:
+	UIConfig() {} // private constructor
+};
+
+const std::string ProjectZeroVersion = "0.02";
 
 //Key press surfaces constants
 enum KeyPressSurfaces
@@ -25,20 +30,6 @@ enum KeyPressSurfaces
 	KEY_PRESS_SURFACE_TOTAL
 };
 
-// Function to create a button
-SDL_Surface* create_button(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect)
-{
-	SDL_Surface* button_surface = TTF_RenderText_Solid(font, text, color);
-	rect->w = button_surface->w;
-	rect->h = button_surface->h;
-	return button_surface;
-}
-
-// Function to render a button
-void renderButton(SDL_Surface* surface, SDL_Surface* buttonSurface, SDL_Rect* rect)
-{
-	SDL_BlitSurface(buttonSurface, NULL, surface, rect);
-}
 
 // Function to render a button
 void render_button(SDL_Surface* surface, SDL_Surface* button_surface, SDL_Rect* rect)
@@ -67,32 +58,60 @@ bool init_sdl(SDL_Window** window, SDL_Surface** surface)
 	return true;
 }
 
-// Function to load font and create buttons
-bool load_font_and_create_buttons(TTF_Font** font, SDL_Surface** button_surfaces, SDL_Rect* button_rects, const char** button_labels)
+SDL_Surface* create_button_surface(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect)
+{
+	SDL_Surface* button_surface = TTF_RenderText_Solid(font, text, color);
+	rect->w = button_surface->w;
+	rect->h = button_surface->h;
+	return button_surface;
+}
+
+TTF_Font* init_font(const char* font_file, int font_size)
 {
 	if (TTF_Init() < 0)
 	{
-		printf("TTF Initialization failed: %s\n", TTF_GetError());
-		return 1;
+		printf("TTF Initialization Failed: %s\n", TTF_GetError());
+		return NULL;
 	}
-
-	*font = TTF_OpenFont("8bit16.ttf", 48);
-	if (!*font)
+	TTF_Font* font = TTF_OpenFont(font_file, font_size);
+	if (!font)
 	{
-		printf("TTF Initialization failed: %s\n", TTF_GetError());
-		return 1;
+		printf("TTF Font loading failed: %s\n", TTF_GetError());
+		return NULL;
 	}
+	return font;
+}
 
-	SDL_Color button_color = { 255, 255 , 255 };
+bool create_buttons(TTF_Font* font, SDL_Surface** button_surfaces, SDL_Rect* button_rects, const char** button_labels)
+{
+	SDL_Color button_color = { 255, 255, 255 };
 
 	for (int i = 0; i < 4; i++)
 	{
-		button_rects[i].x = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
-		button_rects[i].y = 200 + i * (BUTTON_HEIGHT + BUTTON_SPACING);
-		button_surfaces[i] = create_button(*font, button_color, button_labels[i], &button_rects[i]);
+		button_rects[i].x = (UIConfig::WINDOW_WIDTH - UIConfig::BUTTON_HEIGHT) / 2;
+		button_rects[i].y = 200 + i * (UIConfig::BUTTON_HEIGHT + UIConfig::BUTTON_SPACING);
+		button_surfaces[i] = create_button_surface(font, button_color, button_labels[i], &button_rects[i]);
 	}
-
 	return true;
+}
+
+
+
+SDL_Surface* displayLoginScreen(SDL_Window* window, SDL_Surface* surface, TTF_Font* font)
+{
+	SDL_Surface* login_surface = SDL_CreateRGBSurface(0, UIConfig::WINDOW_WIDTH, UIConfig::WINDOW_HEIGHT, 32, 0, 0, 0, 0);
+
+	SDL_Color text_color = { 255, 255, 255 };
+	SDL_Surface* login_text = TTF_RenderText_Solid(font, "Login Screen", text_color);
+	SDL_Rect login_rect = { 100, 100, login_text->w, login_text->h };
+	SDL_BlitSurface(login_text, NULL, login_surface, &login_rect);
+	SDL_FreeSurface(login_text);
+
+	SDL_BlitSurface(login_surface, NULL, surface, NULL);
+
+	SDL_UpdateWindowSurface(window);
+
+	return login_surface;
 }
 
 int main(int argc, char** args)
@@ -102,6 +121,8 @@ int main(int argc, char** args)
 	SDL_Window* window = NULL;
 	SDL_Surface* surface = NULL;
 	TTF_Font* font = NULL;
+
+
 
 	// Create button surfaces and rects
 	SDL_Surface* button_surfaces[4];
@@ -113,7 +134,13 @@ int main(int argc, char** args)
 		return 1;
 	}
 
-	if (!load_font_and_create_buttons(&font, button_surfaces, button_rects, button_labels))
+	font = init_font("8bit16.ttf", 48);
+	if (!font)
+	{
+		return 1;
+	}
+
+	if (!create_buttons(font, button_surfaces, button_rects, button_labels))
 	{
 		return 1;
 	}
@@ -139,7 +166,7 @@ int main(int argc, char** args)
 			{
 				// Highlight the currently selected button
 				SDL_Color highlightColor = { 255, 255, 0 };
-				SDL_Surface* highlightedButton = create_button(font, highlightColor, button_labels[i], &button_rects[i]);
+				SDL_Surface* highlightedButton = create_button_surface(font, highlightColor, button_labels[i], &button_rects[i]);
 				render_button(surface, highlightedButton, &button_rects[i]);
 				SDL_FreeSurface(highlightedButton);
 			}
@@ -177,6 +204,7 @@ int main(int argc, char** args)
 					{
 					case 0:
 						std::cout << "Login button selected" << std::endl;
+						displayLoginScreen(window, surface, font);
 						break;
 					case 1:
 						std::cout << "Register button selected" << std::endl;
