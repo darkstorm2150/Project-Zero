@@ -2,7 +2,7 @@
 
 #include "screen.h"
 #include <cstdio>
-
+#include <llama.h>
 
 ProjectZero::Screen::Screen(int width, int height) : 
     window_(nullptr), 
