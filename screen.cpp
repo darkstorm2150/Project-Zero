@@ -1,20 +1,28 @@
 #include "screen.h"
 #include <cstdio>
 
-Screen::Screen(int width, int height) : window_(nullptr), surface_(nullptr), font_(nullptr), currentSelection_(0), quit_(false)
+ProjectZero::Screen::Screen(int width, int height) : 
+    window_(nullptr), 
+    surface_(nullptr), 
+    font_(nullptr), 
+    currentSelection_(0), 
+    quit_(false), 
+    login_surface_(nullptr), 
+    buttonRect_(), 
+    buttonSurface_()
 {
-	button_labels_[0] = "Login";
-	button_labels_[1] = "Register";
-	button_labels_[2] = "Exit";
-	button_labels_[3] = "Help";
+    buttonLabels_[0] = "Login";
+    buttonLabels_[1] = "Register";
+    buttonLabels_[2] = "Exit";
+    buttonLabels_[3] = "Help";
 }
 
-Screen::~Screen()
+ProjectZero::Screen::~Screen()
 {
-	cleanup();
+    Cleanup();
 }
 
-bool Screen::init()
+bool ProjectZero::Screen::Initialize()
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
@@ -31,13 +39,13 @@ bool Screen::init()
 	}
 
 	surface_ = SDL_GetWindowSurface(window_);
-	font_ = init_font("8bit16.ttf", 48);
+	font_ = InitializeFont("8bit16.ttf", 48);
 	if (!font_)
 	{
 		return false;
 	}
 
-	if (!create_buttons(font_, button_surface_, button_rect_, button_labels_))
+	if (!CreateButtons(font_, buttonSurface_, buttonRect_, buttonLabels_))
 	{
 		return false;
 	}
@@ -45,33 +53,20 @@ bool Screen::init()
 	return true;
 }
 
-void Screen::eventLoop()
+void ProjectZero::Screen::RunEventLoop()
 {
 	SDL_Event e;
 
 	while (!quit_)
 	{
-		render_menu(surface_, button_surface_, button_rect_, currentSelection_);
+		RenderMenu(surface_, buttonSurface_, buttonRect_, currentSelection_);
 		SDL_UpdateWindowSurface(window_);
 
-		handle_events(&e, &quit_, &currentSelection_, window_, surface_, font_, button_labels_);
+		HandleEvents(&e, &quit_, &currentSelection_, window_, surface_, font_, buttonLabels_);
 	}
 }
 
-void Screen::cleanup()
-{
-	for (int i = 0; i < 4; i++)
-	{
-		SDL_FreeSurface(button_surface_[i]);
-	}
-	TTF_CloseFont(font_);
-	font_ = nullptr;
-	SDL_DestroyWindow(window_);
-	TTF_Quit();
-	SDL_Quit();
-}
-
-TTF_Font* Screen::init_font(const char* font_file, int font_size)
+TTF_Font* ProjectZero::Screen::InitializeFont(const char* font_file, int font_size)
 {
 	if (TTF_Init() < 0)
 	{
@@ -87,7 +82,7 @@ TTF_Font* Screen::init_font(const char* font_file, int font_size)
 	return font;
 }
 
-bool Screen::create_buttons(TTF_Font*, SDL_Surface** button_surfaces, SDL_Rect* button_rects, const char** button_labels)
+bool ProjectZero::Screen::CreateButtons(TTF_Font*, SDL_Surface** button_surfaces, SDL_Rect* button_rects, const char** button_labels)
 {
 	SDL_Color button_colors = { 255, 255, 255 };
 
@@ -95,37 +90,37 @@ bool Screen::create_buttons(TTF_Font*, SDL_Surface** button_surfaces, SDL_Rect* 
 	{
 		button_rects[i].x = (1280 - 200) / 2;
 		button_rects[i].y = 200 + i * (50 + 20);
-		button_surfaces[i] = create_button_surface(font_, button_colors, button_labels[i], &button_rects[i]);
+		button_surfaces[i] = CreateButtonSurface(font_, button_colors, button_labels[i], &button_rects[i]);
 	}
 	return true;
 }
 
-SDL_Surface* Screen::create_button_surface(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect) {
+SDL_Surface* ProjectZero::Screen::CreateButtonSurface(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect) {
     SDL_Surface* button_surface = TTF_RenderText_Solid(font, text, color);
     rect->w = button_surface->w;
     rect->h = button_surface->h;
     return button_surface;
 }
 
-void Screen::render_menu(SDL_Surface* surface, SDL_Surface* button_surfaces[], SDL_Rect button_rects[], int currentSelection) {
+void ProjectZero::Screen::RenderMenu(SDL_Surface* surface, SDL_Surface* button_surfaces[], SDL_Rect button_rects[], int currentSelection) {
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
-    TTF_Font* font = init_font("8bit16.ttf", 48);
+    TTF_Font* font = InitializeFont("8bit16.ttf", 48);
     const char* button_labels[] = { "login", "register", "Exit", "Help" };
     for (int i = 0; i < 4; i++) {
         if (i == currentSelection) {
             SDL_Color highlightColor = { 255, 255, 0 };
-            SDL_Surface* highlightedButton = create_button_surface(font, highlightColor, button_labels[i], &button_rects[i]);
-            render_button(surface, highlightedButton, &button_rects[i]);
+            SDL_Surface* highlightedButton = CreateButtonSurface(font, highlightColor, button_labels[i], &button_rects[i]);
+            RenderButton(surface, highlightedButton, &button_rects[i]);
             SDL_FreeSurface(highlightedButton);
         }
         else {
-            render_button(surface, button_surfaces[i], &button_rects[i]);
+            RenderButton(surface, button_surfaces[i], &button_rects[i]);
         }
     }
     TTF_CloseFont(font);
 }
 
-void Screen::handle_events(SDL_Event* e, bool* quit, int* currentSelection, SDL_Window* window, SDL_Surface* surface, TTF_Font* font, const char* button_labels[]) {
+void ProjectZero::Screen::HandleEvents(SDL_Event* e, bool* quit, int* currentSelection, SDL_Window* window, SDL_Surface* surface, TTF_Font* font, const char* button_labels[]) {
     while (SDL_PollEvent(e) != 0) {
         if (e->type == SDL_QUIT) {
             *quit = true;
@@ -144,7 +139,7 @@ void Screen::handle_events(SDL_Event* e, bool* quit, int* currentSelection, SDL_
                 switch (*currentSelection) {
                 case 0:
                     std::cout << "Login button selected" << std::endl;
-                    displayLoginScreen(window, surface, font);
+                    DisplayLoginScreen(window, surface, font);
                     break;
                 case 1:
                     std::cout << "Register button selected" << std::endl;
@@ -163,22 +158,47 @@ void Screen::handle_events(SDL_Event* e, bool* quit, int* currentSelection, SDL_
     }
 }
 
-void Screen::render_button(SDL_Surface* surface, SDL_Surface* button_surface, SDL_Rect* rect) {
+void ProjectZero::Screen::RenderButton(SDL_Surface* surface, SDL_Surface* button_surface, SDL_Rect* rect) {
     SDL_BlitSurface(button_surface, NULL, surface, rect);
 }
 
-SDL_Surface* Screen::displayLoginScreen(SDL_Window* window, SDL_Surface* surface, TTF_Font* font) {
-    SDL_Surface* login_surface = SDL_CreateRGBSurface(0, 1280, 720, 32, 0, 0, 0, 0);
+SDL_Surface* ProjectZero::Screen::DisplayLoginScreen(SDL_Window* window, SDL_Surface* surface, TTF_Font* font) {
+    SDL_Surface* login_surface_ = SDL_CreateRGBSurface(0, 1280, 720, 32, 0, 0, 0, 0);
 
     SDL_Color text_color = { 255, 255, 255 };
     SDL_Surface* login_text = TTF_RenderText_Solid(font, "Login Screen", text_color);
     SDL_Rect login_rect = { 100, 100, login_text->w, login_text->h };
-    SDL_BlitSurface(login_text, NULL, login_surface, &login_rect);
+    SDL_BlitSurface(login_text, NULL, login_surface_, &login_rect);
     SDL_FreeSurface(login_text);
 
-    SDL_BlitSurface(login_surface, NULL, surface, NULL);
+    SDL_BlitSurface(login_surface_, NULL, surface, NULL);
 
     SDL_UpdateWindowSurface(window);
 
-    return login_surface;
+    return login_surface_;
+}
+
+void ProjectZero::Screen::Cleanup()
+{
+    for (auto& surface : buttonSurface_)
+    {
+        if (surface != nullptr)
+        {
+            SDL_FreeSurface(surface);
+            surface = nullptr;
+        }
+    }
+
+    // Freeing login surface
+    if (login_surface_ != nullptr) {
+        SDL_FreeSurface(login_surface_);
+        login_surface_ = nullptr;
+    }
+
+    TTF_CloseFont(font_);
+    font_ = nullptr;
+    SDL_DestroyWindow(window_);
+    window_ = nullptr;
+    TTF_Quit();
+    SDL_Quit();
 }

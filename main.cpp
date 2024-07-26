@@ -4,14 +4,18 @@ int main(int argc, char** args)
 {
 	std::cout << "Starting Project Zero-SDL2 version 0.02 by Victor Espinoza." << std::endl;
 
-	Screen screen(1280, 720);
+	ProjectZero::Screen screen(1280, 720);
 
-	if (!screen.init())
+	if (!screen.Initialize())
 	{
+		std::cerr << "Failed to initialize screen. Exiting..." << std::endl;
 		return 1;
 	}
 
-	screen.eventLoop();
+	screen.RunEventLoop();
+
+	// Clean up
+	screen.Cleanup();
 
 	return 0;
 }
