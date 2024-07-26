@@ -1,5 +1,8 @@
+#pragma warning(disable : 26819)
+
 #include "screen.h"
 #include <cstdio>
+
 
 ProjectZero::Screen::Screen(int width, int height) : 
     window_(nullptr), 
