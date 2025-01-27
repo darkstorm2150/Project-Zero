@@ -8,7 +8,7 @@ int main(int argc, char** args)
 
 	if (!screen.Initialize())
 	{
-		std::cerr << "Failed to initialize screen. Exiting..." << std::endl;
+		std::cerr << "Failed to initialize screen. Exiting..." << SDL_GetError() << std::endl;
 		return 1;
 	}
 

@@ -4,11 +4,12 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <iostream>
+#include <vector>
+#include <memory>
 
 namespace ProjectZero
 {
-	class Screen
-	{
+	class Screen {
 	public:
 		// Constructor
 		Screen(int width, int height);
@@ -25,54 +26,49 @@ namespace ProjectZero
 		// Cleans up resources
 		void Cleanup();
 
-		// Initialize a font
-		TTF_Font* InitializeFont(const char* fontFile, int fontSize);
-		
-		// Creates buttons
-		bool CreateButtons(TTF_Font* font, SDL_Surface** buttonSurfaces, SDL_Rect* buttonRects, const char** buttonLabels);
-		
-		// Renders the menu
-		void RenderMenu(SDL_Surface* surface, SDL_Surface* buttonSurfaces[], SDL_Rect buttonRects[], int currentSelection);
-		
-		// Handles events
-		void HandleEvents(SDL_Event* e, bool* quit, int* currentSelection, SDL_Window* window, SDL_Surface* surface, TTF_Font* font, const char* buttonLabels[]);
-		
-		// Renders a button
-		void RenderButton(SDL_Surface* surface, SDL_Surface* buttonSurface, SDL_Rect* rect);
-		
-		// Displays the Login screen
-		SDL_Surface* DisplayLoginScreen(SDL_Window* window, SDL_Surface* surface, TTF_Font* font);
+		// Create buttons
+		void CreateButtons();
 
-		// Crates a button surface
-		SDL_Surface* CreateButtonSurface(TTF_Font* font, SDL_Color color, const char* text, SDL_Rect* rect);
+		// Render the menu
+		void RenderMenu() const;
+
+		// Handle events
+		void HandleEvents(SDL_Event* e);
+
+		// Display the login screen
+		void DisplayLoginScreen();
 
 	private:
+		void RenderLogin() const;
+
 		// Window handle
-		SDL_Window* window_;
+		std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window_;
 
 		// Surface handle
-		SDL_Surface* surface_;
+		std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> surface_;
 
 		// Font handle
-		TTF_Font* font_;
+		std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)> font_;
 
-		// Button Surface
-		SDL_Surface* buttonSurface_[4];
+		// Button textures
+		std::vector<std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>> buttonTextures_;
 
 		// Button rectangles
-		SDL_Rect buttonRect_[4];
+		std::vector<SDL_Rect> buttonRects_;
 
 		// Button Labels
-		const char* buttonLabels_[4];
+		std::vector<std::string> buttonLabels_;
 
 		// Current selection
 		int currentSelection_;
 
-		// Quit flag
-		bool quit_;
-
-		// Login Surface
-		SDL_Surface* login_surface_;
+		// Screen State
+		enum class ScreenState {
+			RUNNING,
+			QUITTING,
+			LOGIN
+		};
+		ScreenState screenState_;
 	};
 }
 
